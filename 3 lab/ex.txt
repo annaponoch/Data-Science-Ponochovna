@@ -50,3 +50,12 @@ for n_clusters in range(2, 6):
     cluster_labels = kmeans.labels_
     silhouette_avg = silhouette_score(data, cluster_labels)
     print(f"For n_clusters = {n_clusters}, the average silhouette score is {silhouette_avg:.2f}")
+----------------------------------
+from sklearn.metrics import silhouette_samples
+
+# Обчислення силуетного коефіцієнта для кожного семплу та його кластера
+silhouette_vals = silhouette_samples(data, cluster_labels)
+
+# Вивід силуетного коефіцієнта для кожного семплу та його кластера
+for i in range(len(data)):
+    print(f"Sample {i}: Cluster {cluster_labels[i]}, Silhouette score: {silhouette_vals[i]:.2f}")
