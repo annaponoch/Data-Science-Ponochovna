@@ -1,0 +1,32 @@
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+
+# Завантаження датасету
+data = pd.read_csv('your_dataset.csv')
+
+# Відокремлення ознак від цільової змінної, якщо вона є
+X = data.drop(['Sl_No', 'Customer Key'], axis=1)
+
+# Нормалізація даних
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Побудова моделі k-means
+kmeans = KMeans(n_clusters=3, random_state=42)
+kmeans.fit(X_scaled)
+
+# Додавання міток кластерів до датасету
+data['Cluster'] = kmeans.labels_
+
+# Виведення результатів
+print(data.head())
+
+# Візуалізація кластерів
+plt.scatter(X_scaled[:,0], X_scaled[:,1], c=kmeans.labels_, cmap='viridis')
+plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s=300, c='red')
+plt.xlabel('Avg_Credit_Limit')
+plt.ylabel('Total_Credit_Cards')
+plt.title('Clustering of Customers')
+plt.show()
