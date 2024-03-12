@@ -59,3 +59,21 @@ silhouette_vals = silhouette_samples(data, cluster_labels)
 # Вивід силуетного коефіцієнта для кожного семплу та його кластера
 for i in range(len(data)):
     print(f"Sample {i}: Cluster {cluster_labels[i]}, Silhouette score: {silhouette_vals[i]:.2f}")
+-----------------------------------------
+from sklearn.metrics import silhouette_samples
+import numpy as np
+
+# Обчислення силуетного коефіцієнта для кожного семпла та його кластера
+silhouette_vals = silhouette_samples(data, cluster_labels)
+
+# Обчислення середнього силуетного коефіцієнта для кожного кластера
+cluster_silhouette_scores = []
+for cluster in range(kmeans.n_clusters):
+    cluster_silhouette_vals = silhouette_vals[cluster_labels == cluster]
+    cluster_silhouette_score = np.mean(cluster_silhouette_vals)
+    cluster_silhouette_scores.append(cluster_silhouette_score)
+    print(f"Cluster {cluster}: Silhouette score: {cluster_silhouette_score:.2f}")
+
+# Вивід середнього силуетного коефіцієнта для кожного кластера
+for cluster, score in enumerate(cluster_silhouette_scores):
+    print(f"Cluster {cluster}: Average silhouette score: {score:.2f}")
