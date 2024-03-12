@@ -30,3 +30,13 @@ plt.xlabel('Avg_Credit_Limit')
 plt.ylabel('Total_Credit_Cards')
 plt.title('Clustering of Customers')
 plt.show()
+#-----------------------------------------------------
+plt.figure(figsize=(10, 6))
+
+plt.scatter(data['Avg_Credit_Limit'], data['Total_Credit_Cards'], c=data['Cluster'], cmap='viridis', edgecolor='k', s=100)
+plt.xlabel('Avg_Credit_Limit')
+plt.ylabel('Total_Credit_Cards')
+plt.title('Clustering on Original Data')
+plt.colorbar(label='Cluster')
+plt.grid(True)
+plt.show()
