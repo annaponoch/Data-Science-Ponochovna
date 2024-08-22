@@ -19,8 +19,7 @@ VAR PriceSegmentsHTML =
                     CONCATENATEX(
                         DISTINCT(Table[Family]),
                         VAR Family = Table[Family]
-                        RETURN 
-                            "<div class='family-container'><div class='family-name'>" & Family & "</div>" &
+                        VAR ProductsHTML = 
                             CONCATENATEX(
                                 FILTER(
                                     Table,
@@ -33,8 +32,12 @@ VAR PriceSegmentsHTML =
                                     <div class='product-price'>₴" & Table[Price] & "</div>
                                 </div>",
                                 ""
-                            ) &
-                            "</div>",
+                            )
+                        RETURN IF(
+                            LEN(ProductsHTML) > 0, 
+                            "<div class='family-container'><div class='family-name'>" & Family & "</div>" & ProductsHTML & "</div>",
+                            ""
+                        ),
                         ""
                     )
                 RETURN "<td>" & FamilyHTML & "</td>",
