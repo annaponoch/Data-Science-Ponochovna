@@ -28,7 +28,7 @@ VAR PriceSegmentsHTML =
                                     Table[Family] = Family
                                 ),
                                 "<div class='product-item' onclick=""openModal('" & Table[SKU] & "')"">
-                                    <img src='" & Table[Image_URL] & "' alt='" & Table[SKU] & "'>
+                                    <img src='" & Table[Image_URL] & "' alt='" & Table[SKU] & "' style='width: 100px; height: auto;'>
                                     <div class='product-price'>₴" & Table[Price] & "</div>
                                 </div>",
                                 ""
@@ -40,7 +40,7 @@ VAR PriceSegmentsHTML =
                         ),
                         ""
                     )
-                RETURN "<td>" & FamilyHTML & "</td>",
+                RETURN "<td style='vertical-align: top;'>" & FamilyHTML & "</td>",
                 ""
             ) &
             "</tr>",
@@ -51,9 +51,9 @@ VAR ModalHTML =
     CONCATENATEX(
         Table,
         "<div id='" & Table[SKU] & "' class='modal'>
-            <div class='modal-content'>
+            <div class='modal-content' style='max-width: 300px;'>
                 <span class='close-btn' onclick=""closeModal('" & Table[SKU] & "')"">&times;</span>
-                <img src='" & Table[Image_URL] & "' alt='" & Table[SKU] & "'>
+                <img src='" & Table[Image_URL] & "' alt='" & Table[SKU] & "' style='width: 100%; height: auto;'>
                 <div class='product-name'>" & Table[SKU] & "</div>
                 <div class='product-price'>₴" & Table[Price] & "</div>
             </div>
@@ -69,7 +69,16 @@ RETURN
         <tbody>" & PriceSegmentsHTML & "</tbody>
     </table>" &
     ModalHTML &
-    "<script>
+    "<style>
+        .modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.5); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 300px; }
+        .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
+        .close-btn:hover, .close-btn:focus { color: black; text-decoration: none; cursor: pointer; }
+        .product-item img { cursor: pointer; }
+        .product-item { display: inline-block; text-align: center; margin: 10px; }
+        .family-container { margin-bottom: 20px; }
+    </style>
+    <script>
         function openModal(modalId) {
             document.getElementById(modalId).style.display = 'block';
         }
