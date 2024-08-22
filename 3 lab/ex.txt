@@ -1,96 +1,233 @@
-import pandas as pd
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
-import matplotlib.pyplot as plt
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дашборд з морозивом</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
 
-# Завантаження датасету
-data = pd.read_csv('your_dataset.csv')
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-# Відокремлення ознак від цільової змінної, якщо вона є
-X = data.drop(['Sl_No', 'Customer Key'], axis=1)
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
 
-# Нормалізація даних
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+        th, td {
+            border: 1px solid #ddd;
+            padding: 15px;
+            text-align: center;
+            vertical-align: top;
+        }
 
-# Побудова моделі k-means
-kmeans = KMeans(n_clusters=3, random_state=42)
-kmeans.fit(X_scaled)
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
 
-# Додавання міток кластерів до датасету
-data['Cluster'] = kmeans.labels_
+        .family-container {
+            margin-bottom: 15px;
+        }
 
-# Виведення результатів
-print(data.head())
+        .family-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-align: left;
+        }
 
-# Візуалізація кластерів
-plt.scatter(X_scaled[:,0], X_scaled[:,1], c=kmeans.labels_, cmap='viridis')
-plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s=300, c='red')
-plt.xlabel('Avg_Credit_Limit')
-plt.ylabel('Total_Credit_Cards')
-plt.title('Clustering of Customers')
-plt.show()
-#-----------------------------------------------------
-plt.figure(figsize=(10, 6))
+        .product-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
 
-plt.scatter(data['Avg_Credit_Limit'], data['Total_Credit_Cards'], c=data['Cluster'], cmap='viridis', edgecolor='k', s=100)
-plt.xlabel('Avg_Credit_Limit')
-plt.ylabel('Total_Credit_Cards')
-plt.title('Clustering on Original Data')
-plt.colorbar(label='Cluster')
-plt.grid(True)
-plt.show()
-#-------------------------------------------------
-from sklearn.metrics import silhouette_score
+        .product-item {
+            position: relative;
+            cursor: pointer;
+            text-align: center;
+        }
 
-# Перевірка для різної кількості кластерів
-for n_clusters in range(2, 6):
-    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-    kmeans.fit(data)
-    cluster_labels = kmeans.labels_
-    silhouette_avg = silhouette_score(data, cluster_labels)
-    print(f"For n_clusters = {n_clusters}, the average silhouette score is {silhouette_avg:.2f}")
-----------------------------------
-from sklearn.metrics import silhouette_samples
+        .product-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
 
-# Обчислення силуетного коефіцієнта для кожного семплу та його кластера
-silhouette_vals = silhouette_samples(data, cluster_labels)
+        .product-price {
+            margin-top: 5px;
+            color: #888;
+            font-size: 14px;
+        }
 
-# Вивід силуетного коефіцієнта для кожного семплу та його кластера
-for i in range(len(data)):
-    print(f"Sample {i}: Cluster {cluster_labels[i]}, Silhouette score: {silhouette_vals[i]:.2f}")
------------------------------------------
-from sklearn.metrics import silhouette_samples
-import numpy as np
+        /* Модальне вікно */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding-top: 50px;
+        }
 
-# Обчислення силуетного коефіцієнта для кожного семпла та його кластера
-silhouette_vals = silhouette_samples(data, cluster_labels)
+        .modal-content {
+            background-color: #fff;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+            position: relative;
+        }
 
-# Обчислення середнього силуетного коефіцієнта для кожного кластера
-cluster_silhouette_scores = []
-for cluster in range(kmeans.n_clusters):
-    cluster_silhouette_vals = silhouette_vals[cluster_labels == cluster]
-    cluster_silhouette_score = np.mean(cluster_silhouette_vals)
-    cluster_silhouette_scores.append(cluster_silhouette_score)
-    print(f"Cluster {cluster}: Silhouette score: {cluster_silhouette_score:.2f}")
+        .modal-content img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
 
-# Вивід середнього силуетного коефіцієнта для кожного кластера
-for cluster, score in enumerate(cluster_silhouette_scores):
-    print(f"Cluster {cluster}: Average silhouette score: {score:.2f}")
-=-------------
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #888;
+        }
 
-# Створення та навчання моделі kNN
-k = 5  # кількість сусідів
-knn = KNeighborsClassifier(n_neighbors=k)
-knn.fit(X_train, y_train)
+        .close-btn:hover {
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <h1>Дашборд з продуктами виробників морозива</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Ціновий сегмент</th>
+                <!-- Динамічні стовпці виробників -->
+                <th>Компанія A</th>
+                <th>Компанія B</th>
+                <th>Компанія C</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Динамічний рядок для кожного цінового сегменту -->
+            <tr>
+                <td>Економ</td>
+                <!-- Динамічна клітинка для кожного виробника в даному ціновому сегменті -->
+                <td>
+                    <!-- Динамічний контейнер для кожної сім'ї -->
+                    <div class="family-container">
+                        <div class="family-name">Сім'я 1</div>
+                        <div class="product-container">
+                            <div class="product-item" onclick="openModal('modal1')">
+                                <img src="icecream1.jpg" alt="Морозиво 1">
+                                <div class="product-price">₴15</div>
+                            </div>
+                            <div class="product-item" onclick="openModal('modal2')">
+                                <img src="icecream2.jpg" alt="Морозиво 2">
+                                <div class="product-price">₴20</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="family-container">
+                        <div class="family-name">Сім'я 2</div>
+                        <div class="product-container">
+                            <div class="product-item" onclick="openModal('modal3')">
+                                <img src="icecream3.jpg" alt="Морозиво 3">
+                                <div class="product-price">₴18</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </td>
+            </tr>
+            <tr>
+                <td>Економ</td>
+                <!-- Динамічна клітинка для кожного виробника в даному ціновому сегменті -->
+                <td>
+                    <!-- Динамічний контейнер для кожної сім'ї -->
+                    <div class="family-container">
+                        <div class="family-name">Сім'я 1</div>
+                        <div class="product-container">
+                            <div class="product-item" onclick="openModal('modal1')">
+                                <img src="icecream1.jpg" alt="Морозиво 1">
+                                <div class="product-price">₴15</div>
+                            </div>
+                            <div class="product-item" onclick="openModal('modal2')">
+                                <img src="icecream2.jpg" alt="Морозиво 2">
+                                <div class="product-price">₴20</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="family-container">
+                        <div class="family-name">Сім'я 2</div>
+                        <div class="product-container">
+                            <div class="product-item" onclick="openModal('modal3')">
+                                <img src="icecream3.jpg" alt="Морозиво 3">
+                                <div class="product-price">₴18</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </td>
+            </tr>
+        </tbody>
+    </table>
 
-# Класифікація тестових семплів
-y_pred = knn.predict(X_test)
+    <!-- Динамічні модальні вікна для кожного продукту -->
+    <div id="modal1" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('modal1')">&times;</span>
+            <img src="icecream1.jpg" alt="Морозиво 1">
+            <div class="product-name">Морозиво Ванільне</div>
+            <div class="product-price">₴15</div>
+        </div>
+    </div>
 
-# Оцінка точності моделі
-accuracy = accuracy_score(y_test, y_pred)
-print(f'Accuracy: {accuracy:.2f}')
+    <div id="modal2" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('modal2')">&times;</span>
+            <img src="icecream2.jpg" alt="Морозиво 2">
+            <div class="product-name">Морозиво Шоколадне</div>
+            <div class="product-price">₴20</div>
+        </div>
+    </div>
+
+    <div id="modal3" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('modal3')">&times;</span>
+            <img src="icecream3.jpg" alt="Морозиво 3">
+            <div class="product-name">Морозиво Полуничне</div>
+            <div class="product-price">₴18</div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = "block";
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+    </script>
+</body>
+</html>
