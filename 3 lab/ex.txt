@@ -27,7 +27,7 @@ VAR PriceSegmentsHTML =
                                     Table[Price_Segment] = PriceSegment && 
                                     Table[Family] = Family
                                 ),
-                                "<div class='product-item' onclick=""openModal('" & Table[SKU] & "')"">
+                                "<div class='product-item'>
                                     <img src='" & Table[Image_URL] & "' alt='" & Table[SKU] & "' style='width: 100px; height: auto;'>
                                     <div class='product-price'>₴" & Table[Price] & "</div>
                                 </div>",
@@ -35,7 +35,10 @@ VAR PriceSegmentsHTML =
                             )
                         RETURN IF(
                             LEN(ProductsHTML) > 0, 
-                            "<div class='family-container'><div class='family-name'>" & Family & "</div>" & ProductsHTML & "</div>",
+                            "<div class='family-container'>
+                                <button class='expand-btn' onclick=""toggleFamily('" & Family & "')"" >" & Family & "</button>
+                                <div id='family-" & Family & "' class='family-products' style='display: none;'>" & ProductsHTML & "</div>
+                            </div>",
                             ""
                         ),
                         ""
@@ -77,6 +80,8 @@ RETURN
         .product-item img { cursor: pointer; }
         .product-item { display: inline-block; text-align: center; margin: 10px; }
         .family-container { margin-bottom: 20px; }
+        .expand-btn { display: block; margin: 10px 0; cursor: pointer; }
+        .family-products { padding: 10px; border: 1px solid #ddd; }
     </style>
     <script>
         function openModal(modalId) {
@@ -84,5 +89,13 @@ RETURN
         }
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
+        }
+        function toggleFamily(familyId) {
+            var familyDiv = document.getElementById('family-' + familyId);
+            if (familyDiv.style.display === 'none') {
+                familyDiv.style.display = 'block';
+            } else {
+                familyDiv.style.display = 'none';
+            }
         }
     </script>"
