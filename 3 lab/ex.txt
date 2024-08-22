@@ -27,7 +27,7 @@ VAR PriceSegmentsHTML =
                                     Table[Price_Segment] = PriceSegment && 
                                     Table[Family] = Family
                                 ),
-                                "<div class='product-item'>
+                                "<div class='product-item' onclick=""openModal('" & Table[SKU] & "')"">
                                     <img src='" & Table[Image_URL] & "' alt='" & Table[SKU] & "' style='width: 100px; height: auto;'>
                                     <div class='product-price'>₴" & Table[Price] & "</div>
                                 </div>",
@@ -54,7 +54,7 @@ VAR ModalHTML =
     CONCATENATEX(
         Table,
         "<div id='" & Table[SKU] & "' class='modal'>
-            <div class='modal-content' style='max-width: 300px;'>
+            <div class='modal-content'>
                 <span class='close-btn' onclick=""closeModal('" & Table[SKU] & "')"">&times;</span>
                 <img src='" & Table[Image_URL] & "' alt='" & Table[SKU] & "' style='width: 100%; height: auto;'>
                 <div class='product-name'>" & Table[SKU] & "</div>
@@ -73,7 +73,7 @@ RETURN
     </table>" &
     ModalHTML &
     "<style>
-        .modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.5); }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.5); }
         .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 300px; }
         .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
         .close-btn:hover, .close-btn:focus { color: black; text-decoration: none; cursor: pointer; }
@@ -85,17 +85,25 @@ RETURN
     </style>
     <script>
         function openModal(modalId) {
-            document.getElementById(modalId).style.display = 'block';
+            var modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'block';
+            }
         }
         function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
+            var modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+            }
         }
         function toggleFamily(familyId) {
             var familyDiv = document.getElementById('family-' + familyId);
-            if (familyDiv.style.display === 'none') {
-                familyDiv.style.display = 'block';
-            } else {
-                familyDiv.style.display = 'none';
+            if (familyDiv) {
+                if (familyDiv.style.display === 'none') {
+                    familyDiv.style.display = 'block';
+                } else {
+                    familyDiv.style.display = 'none';
+                }
             }
         }
     </script>"
