@@ -9,37 +9,62 @@ VAR ProducersHTML =
 VAR PriceSegmentsHTML = 
     CONCATENATEX(
         DISTINCT(Table[Price_Segment]),
-        "<tr><td>" & Table[Price_Segment] & "</td>" & 
-        CONCATENATEX(
-            DISTINCT(Table[Producer]),
-            VAR FamilyHTML = 
-                CONCATENATEX(
-                    DISTINCT(Table[Family]),
-                    "<div class='family-container'><div class='family-name'>" & Table[Family] & "</div>" &
+        VAR PriceSegment = Table[Price_Segment]
+        RETURN
+            "<tr><td>" & PriceSegment & "</td>" & 
+            CONCATENATEX(
+                DISTINCT(Table[Producer]),
+                VAR Producer = Table[Producer]
+                VAR FamilyHTML = 
                     CONCATENATEX(
-                        FILTER(Table, Table[Producer] = EARLIER(Table[Producer]) && Table[Price_Segment] = EARLIER(Table[Price_Segment]) && Table[Family] = EARLIER(Table[Family])),
-                        "<div class='product-item' onclick=""openModal('" & Table[SKU] & "')""><img src='" & Table[Image_URL] & "' alt='" & Table[SKU] & "'><div class='product-price'>₴" & Table[Price] & "</div></div>",
+                        DISTINCT(Table[Family]),
+                        VAR Family = Table[Family]
+                        RETURN 
+                            "<div class='family-container'><div class='family-name'>" & Family & "</div>" &
+                            CONCATENATEX(
+                                FILTER(
+                                    Table,
+                                    Table[Producer] = Producer && 
+                                    Table[Price_Segment] = PriceSegment && 
+                                    Table[Family] = Family
+                                ),
+                                "<div class='product-item' onclick=""openModal('" & Table[SKU] & "')"">
+                                    <img src='" & Table[Image_URL] & "' alt='" & Table[SKU] & "'>
+                                    <div class='product-price'>₴" & Table[Price] & "</div>
+                                </div>",
+                                ""
+                            ) &
+                            "</div>",
                         ""
-                    ) &
-                    "</div>",
-                    ""
-                )
-            RETURN "<td>" & FamilyHTML & "</td>",
-            ""
-        ) &
-        "</tr>",
+                    )
+                RETURN "<td>" & FamilyHTML & "</td>",
+                ""
+            ) &
+            "</tr>",
         ""
     )
 
 VAR ModalHTML = 
     CONCATENATEX(
         Table,
-        "<div id='" & Table[SKU] & "' class='modal'><div class='modal-content'><span class='close-btn' onclick=""closeModal('" & Table[SKU] & "')"">&times;</span><img src='" & Table[Image_URL] & "' alt='" & Table[SKU] & "'><div class='product-name'>" & Table[SKU] & "</div><div class='product-price'>₴" & Table[Price] & "</div></div></div>",
+        "<div id='" & Table[SKU] & "' class='modal'>
+            <div class='modal-content'>
+                <span class='close-btn' onclick=""closeModal('" & Table[SKU] & "')"">&times;</span>
+                <img src='" & Table[Image_URL] & "' alt='" & Table[SKU] & "'>
+                <div class='product-name'>" & Table[SKU] & "</div>
+                <div class='product-price'>₴" & Table[Price] & "</div>
+            </div>
+        </div>",
         ""
     )
 
 RETURN
-    "<table><thead><tr><th>Ціновий сегмент</th>" & ProducersHTML & "</tr></thead><tbody>" & PriceSegmentsHTML & "</tbody></table>" &
+    "<table>
+        <thead>
+            <tr><th>Ціновий сегмент</th>" & ProducersHTML & "</tr>
+        </thead>
+        <tbody>" & PriceSegmentsHTML & "</tbody>
+    </table>" &
     ModalHTML &
     "<script>
         function openModal(modalId) {
