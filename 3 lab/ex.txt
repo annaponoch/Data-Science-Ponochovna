@@ -1,233 +1,51 @@
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Дашборд з морозивом</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
+DynamicHTML = 
+VAR ProducersHTML = 
+    CONCATENATEX(
+        DISTINCT(Table[Producer]),
+        "<th>" & Table[Producer] & "</th>",
+        ""
+    )
 
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+VAR PriceSegmentsHTML = 
+    CONCATENATEX(
+        DISTINCT(Table[Price_Segment]),
+        "<tr><td>" & Table[Price_Segment] & "</td>" & 
+        CONCATENATEX(
+            DISTINCT(Table[Producer]),
+            VAR FamilyHTML = 
+                CONCATENATEX(
+                    DISTINCT(Table[Family]),
+                    "<div class='family-container'><div class='family-name'>" & Table[Family] & "</div>" &
+                    CONCATENATEX(
+                        FILTER(Table, Table[Producer] = EARLIER(Table[Producer]) && Table[Price_Segment] = EARLIER(Table[Price_Segment]) && Table[Family] = EARLIER(Table[Family])),
+                        "<div class='product-item' onclick=""openModal('" & Table[SKU] & "')""><img src='" & Table[Image_URL] & "' alt='" & Table[SKU] & "'><div class='product-price'>₴" & Table[Price] & "</div></div>",
+                        ""
+                    ) &
+                    "</div>",
+                    ""
+                )
+            RETURN "<td>" & FamilyHTML & "</td>",
+            ""
+        ) &
+        "</tr>",
+        ""
+    )
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
+VAR ModalHTML = 
+    CONCATENATEX(
+        Table,
+        "<div id='" & Table[SKU] & "' class='modal'><div class='modal-content'><span class='close-btn' onclick=""closeModal('" & Table[SKU] & "')"">&times;</span><img src='" & Table[Image_URL] & "' alt='" & Table[SKU] & "'><div class='product-name'>" & Table[SKU] & "</div><div class='product-price'>₴" & Table[Price] & "</div></div></div>",
+        ""
+    )
 
-        th, td {
-            border: 1px solid #ddd;
-            padding: 15px;
-            text-align: center;
-            vertical-align: top;
-        }
-
-        th {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .family-container {
-            margin-bottom: 15px;
-        }
-
-        .family-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-            text-align: left;
-        }
-
-        .product-container {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .product-item {
-            position: relative;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .product-item img {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 5px;
-        }
-
-        .product-price {
-            margin-top: 5px;
-            color: #888;
-            font-size: 14px;
-        }
-
-        /* Модальне вікно */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding-top: 50px;
-        }
-
-        .modal-content {
-            background-color: #fff;
-            margin: auto;
-            padding: 20px;
-            border-radius: 10px;
-            width: 80%;
-            max-width: 300px;
-            text-align: center;
-            position: relative;
-        }
-
-        .modal-content img {
-            width: 100%;
-            height: auto;
-            border-radius: 5px;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 20px;
-            cursor: pointer;
-            color: #888;
-        }
-
-        .close-btn:hover {
-            color: #000;
-        }
-    </style>
-</head>
-<body>
-    <h1>Дашборд з продуктами виробників морозива</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Ціновий сегмент</th>
-                <!-- Динамічні стовпці виробників -->
-                <th>Компанія A</th>
-                <th>Компанія B</th>
-                <th>Компанія C</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Динамічний рядок для кожного цінового сегменту -->
-            <tr>
-                <td>Економ</td>
-                <!-- Динамічна клітинка для кожного виробника в даному ціновому сегменті -->
-                <td>
-                    <!-- Динамічний контейнер для кожної сім'ї -->
-                    <div class="family-container">
-                        <div class="family-name">Сім'я 1</div>
-                        <div class="product-container">
-                            <div class="product-item" onclick="openModal('modal1')">
-                                <img src="icecream1.jpg" alt="Морозиво 1">
-                                <div class="product-price">₴15</div>
-                            </div>
-                            <div class="product-item" onclick="openModal('modal2')">
-                                <img src="icecream2.jpg" alt="Морозиво 2">
-                                <div class="product-price">₴20</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="family-container">
-                        <div class="family-name">Сім'я 2</div>
-                        <div class="product-container">
-                            <div class="product-item" onclick="openModal('modal3')">
-                                <img src="icecream3.jpg" alt="Морозиво 3">
-                                <div class="product-price">₴18</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                </td>
-            </tr>
-            <tr>
-                <td>Економ</td>
-                <!-- Динамічна клітинка для кожного виробника в даному ціновому сегменті -->
-                <td>
-                    <!-- Динамічний контейнер для кожної сім'ї -->
-                    <div class="family-container">
-                        <div class="family-name">Сім'я 1</div>
-                        <div class="product-container">
-                            <div class="product-item" onclick="openModal('modal1')">
-                                <img src="icecream1.jpg" alt="Морозиво 1">
-                                <div class="product-price">₴15</div>
-                            </div>
-                            <div class="product-item" onclick="openModal('modal2')">
-                                <img src="icecream2.jpg" alt="Морозиво 2">
-                                <div class="product-price">₴20</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="family-container">
-                        <div class="family-name">Сім'я 2</div>
-                        <div class="product-container">
-                            <div class="product-item" onclick="openModal('modal3')">
-                                <img src="icecream3.jpg" alt="Морозиво 3">
-                                <div class="product-price">₴18</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                </td>
-            </tr>
-        </tbody>
-    </table>
-
-    <!-- Динамічні модальні вікна для кожного продукту -->
-    <div id="modal1" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('modal1')">&times;</span>
-            <img src="icecream1.jpg" alt="Морозиво 1">
-            <div class="product-name">Морозиво Ванільне</div>
-            <div class="product-price">₴15</div>
-        </div>
-    </div>
-
-    <div id="modal2" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('modal2')">&times;</span>
-            <img src="icecream2.jpg" alt="Морозиво 2">
-            <div class="product-name">Морозиво Шоколадне</div>
-            <div class="product-price">₴20</div>
-        </div>
-    </div>
-
-    <div id="modal3" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('modal3')">&times;</span>
-            <img src="icecream3.jpg" alt="Морозиво 3">
-            <div class="product-name">Морозиво Полуничне</div>
-            <div class="product-price">₴18</div>
-        </div>
-    </div>
-
-    <script>
+RETURN
+    "<table><thead><tr><th>Ціновий сегмент</th>" & ProducersHTML & "</tr></thead><tbody>" & PriceSegmentsHTML & "</tbody></table>" &
+    ModalHTML &
+    "<script>
         function openModal(modalId) {
-            document.getElementById(modalId).style.display = "block";
+            document.getElementById(modalId).style.display = 'block';
         }
-
         function closeModal(modalId) {
-            document.getElementById(modalId).style.display = "none";
+            document.getElementById(modalId).style.display = 'none';
         }
-    </script>
-</body>
-</html>
+    </script>"
