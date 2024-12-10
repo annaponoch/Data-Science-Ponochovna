@@ -1,109 +1,283 @@
-DynamicHTML = 
-VAR ProducersHTML = 
-    CONCATENATEX(
-        DISTINCT(Table[Producer]),
-        "<th>" & Table[Producer] & "</th>",
-        ""
-    )
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Динамічна таблиця морозива</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
 
-VAR PriceSegmentsHTML = 
-    CONCATENATEX(
-        DISTINCT(Table[Price_Segment]),
-        VAR PriceSegment = Table[Price_Segment]
-        RETURN
-            "<tr><td>" & PriceSegment & "</td>" & 
-            CONCATENATEX(
-                DISTINCT(Table[Producer]),
-                VAR Producer = Table[Producer]
-                VAR FamilyHTML = 
-                    CONCATENATEX(
-                        DISTINCT(Table[Family]),
-                        VAR Family = Table[Family]
-                        VAR ProductsHTML = 
-                            CONCATENATEX(
-                                FILTER(
-                                    Table,
-                                    Table[Producer] = Producer && 
-                                    Table[Price_Segment] = PriceSegment && 
-                                    Table[Family] = Family
-                                ),
-                                "<div class='product-item' onclick=""openModal('" & Table[SKU] & "')"">
-                                    <img src='" & Table[Image_URL] & "' alt='" & Table[SKU] & "' style='width: 100px; height: auto;'>
-                                    <div class='product-price'>₴" & Table[Price] & "</div>
-                                </div>",
-                                ""
-                            )
-                        RETURN IF(
-                            LEN(ProductsHTML) > 0, 
-                            "<div class='family-container'>
-                                <button class='expand-btn' onclick=""toggleFamily('" & Family & "')"" >" & Family & "</button>
-                                <div id='family-" & Family & "' class='family-products' style='display: none;'>" & ProductsHTML & "</div>
-                            </div>",
-                            ""
-                        ),
-                        ""
-                    )
-                RETURN "<td style='vertical-align: top;'>" & FamilyHTML & "</td>",
-                ""
-            ) &
-            "</tr>",
-        ""
-    )
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-VAR ModalHTML = 
-    CONCATENATEX(
-        Table,
-        "<div id='" & Table[SKU] & "' class='modal'>
-            <div class='modal-content'>
-                <span class='close-btn' onclick=""closeModal('" & Table[SKU] & "')"">&times;</span>
-                <img src='" & Table[Image_URL] & "' alt='" & Table[SKU] & "' style='width: 100%; height: auto;'>
-                <div class='product-name'>" & Table[SKU] & "</div>
-                <div class='product-price'>₴" & Table[Price] & "</div>
-            </div>
-        </div>",
-        ""
-    )
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
 
-RETURN
-    "<table>
-        <thead>
-            <tr><th>Ціновий сегмент</th>" & ProducersHTML & "</tr>
-        </thead>
-        <tbody>" & PriceSegmentsHTML & "</tbody>
-    </table>" &
-    ModalHTML &
-    "<style>
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.5); }
-        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 300px; }
-        .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
-        .close-btn:hover, .close-btn:focus { color: black; text-decoration: none; cursor: pointer; }
-        .product-item img { cursor: pointer; }
-        .product-item { display: inline-block; text-align: center; margin: 10px; }
-        .family-container { margin-bottom: 20px; }
-        .expand-btn { display: block; margin: 10px 0; cursor: pointer; }
-        .family-products { padding: 10px; border: 1px solid #ddd; }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 15px;
+            text-align: center;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .vertical-segments {
+            writing-mode: vertical-lr;
+            text-align: center;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+        }
+
+        .family-container {
+            margin-bottom: 10px;
+        }
+
+        .family-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-align: left;
+            cursor: pointer;
+            color: #007BFF;
+        }
+
+        .family-name:hover {
+            text-decoration: underline;
+        }
+
+        .product-container {
+            display: none;
+            margin-left: 20px;
+        }
+
+        .product-item {
+            display: inline-block;
+            width: 100px;
+            text-align: center;
+            margin: 5px;
+        }
+
+        .product-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .product-price {
+            margin-top: 5px;
+            color: #888;
+            font-size: 14px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding-top: 50px;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-content img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #888;
+        }
+
+        .close-btn:hover {
+            color: #000;
+        }
     </style>
+</head>
+<body>
+    <h1>Дашборд з продуктами виробників морозива</h1>
+    <table id="iceCreamTable">
+        <thead>
+            <tr>
+                <th class="vertical-segments">Цінові сегменти</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <img id="modalImage" src="" alt="">
+            <div id="modalName"></div>
+            <div id="modalPrice"></div>
+        </div>
+    </div>
+
     <script>
-        function openModal(modalId) {
-            var modal = document.getElementById(modalId);
-            if (modal) {
-                modal.style.display = 'block';
-            }
-        }
-        function closeModal(modalId) {
-            var modal = document.getElementById(modalId);
-            if (modal) {
-                modal.style.display = 'none';
-            }
-        }
-        function toggleFamily(familyId) {
-            var familyDiv = document.getElementById('family-' + familyId);
-            if (familyDiv) {
-                if (familyDiv.style.display === 'none') {
-                    familyDiv.style.display = 'block';
-                } else {
-                    familyDiv.style.display = 'none';
+        // Функція для завантаження CSV файлу та парсингу
+        function loadCSV(file, callback) {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", file, true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    const data = parseCSV(xhr.responseText);
+                    callback(data);
                 }
-            }
+            };
+            xhr.send();
         }
-    </script>"
+
+        // Функція для парсингу CSV в об'єкти
+        function parseCSV(csv) {
+            const lines = csv.split("\n");
+            const headers = lines[0].split(",");
+            const data = lines.slice(1).map(line => {
+                const values = line.split(",");
+                let obj = {};
+                values.forEach((value, index) => {
+                    obj[headers[index].trim()] = value.trim();
+                });
+                return obj;
+            });
+            return data;
+        }
+
+        // Функція для побудови таблиці
+        function buildTable(data) {
+            const table = document.getElementById("iceCreamTable");
+            const priceSegments = [...new Set(data.map(item => item.Price_Segment))];
+            const producers = [...new Set(data.map(item => item.Producer))];
+
+            // Header
+            const theadRow = table.querySelector("thead tr");
+            producers.forEach(producer => {
+                const th = document.createElement("th");
+                th.textContent = producer;
+                theadRow.appendChild(th);
+            });
+
+            // Body
+            const tbody = table.querySelector("tbody");
+            priceSegments.forEach(segment => {
+                const row = document.createElement("tr");
+
+                const segmentCell = document.createElement("td");
+                segmentCell.textContent = segment;
+                segmentCell.className = "vertical-segments";
+                row.appendChild(segmentCell);
+
+                producers.forEach(producer => {
+                    const cell = document.createElement("td");
+
+                    // Фільтруємо продукти для кожного виробника та цінового сегменту
+                    const families = data.filter(item => item.Price_Segment === segment && item.Producer === producer);
+                    const familyGroups = families.reduce((acc, item) => {
+                        if (!acc[item.Family]) acc[item.Family] = [];
+                        acc[item.Family].push(item);
+                        return acc;
+                    }, {});
+
+                    Object.entries(familyGroups).forEach(([family, products]) => {
+                        const familyContainer = document.createElement("div");
+                        familyContainer.className = "family-container";
+
+                        const familyName = document.createElement("div");
+                        familyName.className = "family-name";
+                        familyName.textContent = family;
+                        familyName.onclick = () => toggleFamily(familyContainer);
+                        familyContainer.appendChild(familyName);
+
+                        const productContainer = document.createElement("div");
+                        productContainer.className = "product-container";
+
+                        products.forEach(product => {
+                            const productItem = document.createElement("div");
+                            productItem.className = "product-item";
+                            productItem.onclick = () => openModal(product);
+
+                            const img = document.createElement("img");
+                            const imageUrl = product.Image_URL || "default.jpg"; // Якщо картинка не знайдена, використовуємо дефолтне зображення
+                            img.src = imageUrl;
+                            img.alt = product.SKU;
+
+                            const price = document.createElement("div");
+                            price.className = "product-price";
+                            price.textContent = `₴${product.Price}`;
+
+                            productItem.appendChild(img);
+                            productItem.appendChild(price);
+                            productContainer.appendChild(productItem);
+                        });
+
+                        familyContainer.appendChild(productContainer);
+                        cell.appendChild(familyContainer);
+                    });
+
+                    row.appendChild(cell);
+                });
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // Функція для розкриття/сховування сімей
+        function toggleFamily(container) {
+            const productContainer = container.querySelector(".product-container");
+            productContainer.style.display = productContainer.style.display === "block" ? "none" : "block";
+        }
+
+        // Функція для відкриття модального вікна
+        function openModal(product) {
+            document.getElementById("modalImage").src = product.Image_URL;
+            document.getElementById("modalName").textContent = product.SKU;
+            document.getElementById("modalPrice").textContent = `₴${product.Price}`;
+            document.getElementById("modal").style.display = "block";
+        }
+
+        // Функція для закриття модального вікна
+        function closeModal() {
+            document.getElementById("modal").style.display = "none";
+        }
+
+        // Завантаження даних з CSV та побудова таблиці
+        document.addEventListener("DOMContentLoaded", () => {
+            loadCSV("data.csv", buildTable);
+        });
+    </script>
+</body>
+</html>
